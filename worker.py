@@ -26,7 +26,7 @@ def do_work(ch, delivery_tag, body):
     parser = AppParser(package)
     app_info = parser.check()
     if app_info['status'] == 0:
-        print(package,app_info['count '])
+        print(package,app_info['count'])
     cb = functools.partial(ack_message, ch, delivery_tag)
     ch.connection.add_callback_threadsafe(cb)
 

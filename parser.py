@@ -15,12 +15,27 @@ class AppParser():
     def _request(self,url):
         return requests.get(url)
 
+    def _format_to_int(self,num_str):
+        num = num_str.replace('+', '')
+        if 'K' in num:
+            num = num.replace('K', '')
+            num = int(num) * 1000
+        elif 'M' in num:
+            num = num.replace('M', '')
+            num = int(num) * 1000000
+        elif 'B' in num:
+            num = num.replace('B', '')
+            num = int(num) * 1000000000
+        else:
+            num = int(num)
+        return num
     def _get_count_install(self,text):
         soup = BeautifulSoup(text,'html.parser')
         element = soup.find_all('div',{'class':'ClM7O'})
         if element[0].text.find('star') != -1:
-            return element[1].text
-        return element[0].text
+            return self._format_to_int(element[1].text)
+        return self._format_to_int(element[0].text)
+
 
 
     def check(self):
