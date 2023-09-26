@@ -1,0 +1,1 @@
+BASE_URL_SERVICE = 'http://0.0.0.0:4545'

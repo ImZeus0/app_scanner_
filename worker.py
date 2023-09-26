@@ -4,6 +4,8 @@ import threading
 import pika
 from pika.exceptions import ChannelClosedByBroker
 from pika.exchange_type import ExchangeType
+
+from api import ServiceApi
 from parser import AppParser
 
 
@@ -23,10 +25,33 @@ def do_work(ch, delivery_tag, body):
     print('Thread id: %s Delivery tag: %s Message body: %s date: %s', thread_id,
                 delivery_tag, body,str(datetime.datetime.now()))
     package = body.decode()
-    parser = AppParser(package)
-    app_info = parser.check()
-    if app_info['status'] == 0:
-        print(package,app_info['count'])
+    app = ServiceApi.get_app_by_package(package).json()
+    if app:
+        parser = AppParser(package)
+        app_info = parser.check()
+        if app_info['status'] == 0:
+            history_record = {'app_id':app['id'],'category':app['category'],'count_downloads':app_info['count']}
+            if app['status'] == 'IN_DEVELOPING':
+                history_record['status'] = 'PUBLISHED'
+                app['status'] = 'PUBLISHED'
+            res = ServiceApi.save_scan(history_record)
+            app['count_downloads'] = app_info['count']
+            ServiceApi.update_app_info(app['id'], app)
+        elif app_info['status'] == 1:
+            if app['status'] == 'IN_DEVELOPING':
+                history_record = {'app_id': app['id'], 'category': app['category'],
+                                  'count_downloads': app_info['count'],'status':'IN_DEVELOPING'}
+                res = ServiceApi.save_scan(history_record)
+            elif app['status'] == 'PUBLISHED' or app['status'] == 'SALES':
+                history_bloked = ServiceApi.get_blocked(app['id'])
+                if len(history_bloked) >= 2:
+                    app['status'] = 'BLOCKED'
+                    ServiceApi.update_app_info(app['id'], app)
+                history_record = {'app_id': app['id'], 'category': app['category'],
+                                  'count_downloads': app_info['count'],'status':'BLOCKED'}
+                res = ServiceApi.save_scan(history_record)
+    else:
+        print('Not found package in db')
     cb = functools.partial(ack_message, ch, delivery_tag)
     ch.connection.add_callback_threadsafe(cb)
 

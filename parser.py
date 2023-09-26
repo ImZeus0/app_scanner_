@@ -43,7 +43,7 @@ class AppParser():
         res = self._request(url)
         if res.status_code == 200:
             return {'status':0,'count':self._get_count_install(res.text)}
-        elif res.status_code == 400:
+        elif res.status_code == 404:
             return {'status': 1, 'msg':'not found'}
         else:
             print(f'Error open app {self.package} status:{res.status_code} err:{res.text}')
