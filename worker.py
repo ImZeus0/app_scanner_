@@ -40,7 +40,7 @@ def do_work(ch, delivery_tag, body):
         elif app_info['status'] == 1:
             if app['status'] == 'IN_DEVELOPING':
                 history_record = {'app_id': app['id'], 'category': app['category'],
-                                  'count_downloads': app_info['count'],'status':'IN_DEVELOPING'}
+                                  'count_downloads': 0,'status':'IN_DEVELOPING'}
                 res = ServiceApi.save_scan(history_record)
             elif app['status'] == 'PUBLISHED' or app['status'] == 'SALES':
                 history_bloked = ServiceApi.get_blocked(app['id'])
