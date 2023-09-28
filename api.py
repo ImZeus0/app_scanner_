@@ -22,4 +22,8 @@ class ServiceApi:
         url = BASE_URL_SERVICE + '/apps/blocked'
         return requests.get(url, params={'app_id': app_id})
 
+    @classmethod
+    def get_history_blocked(cls, app_id):
+        url = BASE_URL_SERVICE + '/history_apps/blocked'
+        return requests.get(url, params={'id_app': app_id})
 

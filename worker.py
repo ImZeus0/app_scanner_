@@ -29,26 +29,28 @@ def do_work(ch, delivery_tag, body):
     if app:
         parser = AppParser(package)
         app_info = parser.check()
+        print(app_info)
         if app_info['status'] == 0:
-            history_record = {'app_id':app['id'],'category':app['category'],'count_downloads':app_info['count']}
+            history_record = {'app_id':app['id'],'status': 'PUBLISHED','category':app['category'],'count_downloads':app_info['count']}
             if app['status'] == 'IN_DEVELOPING':
-                history_record['status'] = 'PUBLISHED'
                 app['status'] = 'PUBLISHED'
+                app['count_downloads'] = app_info['count']
+                ServiceApi.update_app_info(app['id'], app)
             res = ServiceApi.save_scan(history_record)
-            app['count_downloads'] = app_info['count']
-            ServiceApi.update_app_info(app['id'], app)
+            print(res.json())
         elif app_info['status'] == 1:
             if app['status'] == 'IN_DEVELOPING':
                 history_record = {'app_id': app['id'], 'category': app['category'],
                                   'count_downloads': 0,'status':'IN_DEVELOPING'}
                 res = ServiceApi.save_scan(history_record)
             elif app['status'] == 'PUBLISHED' or app['status'] == 'SALES':
-                history_bloked = ServiceApi.get_blocked(app['id'])
-                if len(history_bloked) >= 2:
+                history_bloked = ServiceApi.get_history_blocked(app['id'])
+                print(history_bloked.json(),'history_bloked')
+                if len(history_bloked.json()) >= 2:
                     app['status'] = 'BLOCKED'
                     ServiceApi.update_app_info(app['id'], app)
                 history_record = {'app_id': app['id'], 'category': app['category'],
-                                  'count_downloads': app_info['count'],'status':'BLOCKED'}
+                                  'count_downloads': app['count_downloads'],'status':'BLOCKED'}
                 res = ServiceApi.save_scan(history_record)
     else:
         print('Not found package in db')
