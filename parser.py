@@ -6,11 +6,15 @@ from bs4 import BeautifulSoup
 
 class AppParser():
 
-    def __init__(self,package):
+    def __init__(self,package,name):
         self.package = package
+        self.name = name
 
     def _get_link(self):
         return f'https://play.google.com/store/apps/details?id={self.package}&hl=en&gl=US'
+
+    def _get_link_appstore(self):
+        return f'https://apps.apple.com/us/app/{self.name.replace(" ","-")}/id{self.package}'
 
     def _request(self,url):
         return requests.get(url)
@@ -38,13 +42,23 @@ class AppParser():
 
 
 
-    def check(self):
+    def check_play_marker(self):
         url = self._get_link()
         res = self._request(url)
         if res.status_code == 200:
             return {'status':0,'count':self._get_count_install(res.text)}
         elif res.status_code == 404:
             return {'status': 1, 'msg':'not found'}
+        else:
+            print(f'Error open app {self.package} status:{res.status_code} err:{res.text}')
+
+    def check_app_stope(self):
+        url = self._get_link_appstore()
+        res = self._request(url)
+        if res.status_code == 200:
+            return {'status': 0, 'count': 0}
+        elif res.status_code == 404:
+            return {'status': 1, 'msg': 'not found'}
         else:
             print(f'Error open app {self.package} status:{res.status_code} err:{res.text}')
 

@@ -27,8 +27,11 @@ def do_work(ch, delivery_tag, body):
     package = body.decode()
     app = ServiceApi.get_app_by_package(package).json()
     if app:
-        parser = AppParser(package)
-        app_info = parser.check()
+        parser = AppParser(package,app['name'])
+        if app['marketplace'] == 'app_stope':
+            app_info = parser.check_app_stope()
+        else:
+            app_info = parser.check_play_marker()
         print(app_info)
         if app_info['status'] == 0:
             history_record = {'app_id':app['id'],'status': 'PUBLISHED','category':app['category'],'count_downloads':app_info['count']}
